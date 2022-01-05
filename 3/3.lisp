@@ -1,3 +1,5 @@
+(ql:quickload :cl-ppcre)
+
 ;; part 1
 (defun get-power-consumption (input-file)
   (let ((counts '()))
@@ -5,7 +7,7 @@
       (loop for line = (read-line stream nil)
 	 until (null line)
 	 do
-	   (loop for index from 0 to (1- (length (write-to-string (parse-integer line))))
+	   (loop for index from 0 below (length (car (cl-ppcre:split "\\s+" line)))
 	      do
 		(let ((current-char (char line index)))
 		  (if (null (nth index counts))
@@ -37,3 +39,4 @@
 (get-power-consumption "test.txt")
 (get-power-consumption "input.txt")
 
+;; part 2
