@@ -51,30 +51,35 @@
 	      (incf (getf bit-count :1))))
     bit-count))
 
-(get-bit-count *lines* 0)
-
 (defun get-oxygen-generator-rating (binary-numbers index)
   (if (> index (length (car binary-numbers))) (setf index 0))
-  (print (list binary-numbers index))
   (if (= (list-length binary-numbers) 1)
-      (binary-to-decimal (car binary-numbers))2
+      (binary-to-decimal (car binary-numbers))
       (let ((bit-count (get-bit-count binary-numbers index)))
 	(if (or (> (getf bit-count :1) (getf bit-count :0))
 		(= (getf bit-count :1) (getf bit-count :0)))
 	    (get-oxygen-generator-rating
-	     (remove-if (lambda (binary-number) (char= #\0 (char binary-number 0))) binary-numbers) (1+ index))
+	     (remove-if (lambda (binary-number) (char= #\0 (char binary-number index))) binary-numbers) (1+ index))
 	    (get-oxygen-generator-rating
-	     (remove-if (lambda (binary-number) (char= #\1 (char binary-number 0))) binary-numbers) (1+ index))))))
+	     (remove-if (lambda (binary-number) (char= #\1 (char binary-number index))) binary-numbers) (1+ index))))))
 
-(get-oxygen-generator-rating *lines* 0)
+(defun get-c02-scrubber-rating (binary-numbers index)
+  (if (> index (length (car binary-numbers))) (setf index 0))
+  (if (= (list-length binary-numbers) 1)
+      (binary-to-decimal (car binary-numbers))
+      (let ((bit-count (get-bit-count binary-numbers index)))
+	(if (or (< (getf bit-count :0) (getf bit-count :1))
+		(= (getf bit-count :0) (getf bit-count :1)))
+	    (get-c02-scrubber-rating
+	     (remove-if (lambda (binary-number) (char= #\1 (char binary-number index))) binary-numbers) (1+ index))
+	    (get-c02-scrubber-rating
+	     (remove-if (lambda (binary-number) (char= #\0 (char binary-number index))) binary-numbers) (1+ index))))))
 
-(remove-if (lambda (binary-number) (char= #\1 (char binary-number 0))) *lines*)
+(get-c02-scrubber-rating *lines* 0)
 
-(defun get-c02-scrubber-rating (binary-numbers)
-  (print "hi")
-  (print "bye"))
+(defvar *input* (uiop:read-file-lines "input.txt"))
 
-(get-c02-scrubber-rating 1)
+(* (get-oxygen-generator-rating *input* 0) (get-c02-scrubber-rating *input* 0))
 
 (get-oxygen-generator-rating 4)
 
