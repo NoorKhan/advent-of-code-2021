@@ -40,3 +40,17 @@
 (get-power-consumption "input.txt")
 
 ;; part 2
+
+(defvar *lines* (uiop:read-file-lines "test.txt"))
+
+(defun get-bit-count (binary-numbers index)
+  (let ((bit-count (list :0 0 :1 0)))
+    (loop for binary-number in binary-numbers
+       do (if (char= #\0 (char binary-number index))
+	      (incf (getf bit-count :0))
+	      (incf (getf bit-count :1))))
+    bit-count))
+
+(get-bit-count *lines* 0)
+
+(char "abc" 4)
