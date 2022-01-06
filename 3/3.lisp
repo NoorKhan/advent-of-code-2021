@@ -53,4 +53,28 @@
 
 (get-bit-count *lines* 0)
 
-(char "abc" 4)
+(defun get-oxygen-generator-rating (binary-numbers index)
+  (if (> index (length (car binary-numbers))) (setf index 0))
+  (print (list binary-numbers index))
+  (if (= (list-length binary-numbers) 1)
+      (binary-to-decimal (car binary-numbers))2
+      (let ((bit-count (get-bit-count binary-numbers index)))
+	(if (or (> (getf bit-count :1) (getf bit-count :0))
+		(= (getf bit-count :1) (getf bit-count :0)))
+	    (get-oxygen-generator-rating
+	     (remove-if (lambda (binary-number) (char= #\0 (char binary-number 0))) binary-numbers) (1+ index))
+	    (get-oxygen-generator-rating
+	     (remove-if (lambda (binary-number) (char= #\1 (char binary-number 0))) binary-numbers) (1+ index))))))
+
+(get-oxygen-generator-rating *lines* 0)
+
+(remove-if (lambda (binary-number) (char= #\1 (char binary-number 0))) *lines*)
+
+(defun get-c02-scrubber-rating (binary-numbers)
+  (print "hi")
+  (print "bye"))
+
+(get-c02-scrubber-rating 1)
+
+(get-oxygen-generator-rating 4)
+
