@@ -18,13 +18,14 @@
     (* (get-gamma-rate counts) (get-epsilon-rate counts))))
 
 (defun get-gamma-rate (counts)
-  (binary-to-decimal
-   (reduce (lambda (x y) (concatenate 'string x (if (> (getf y :0) (getf y :1)) "0" "1")))
-	   counts :initial-value "")))
+  (get-rate counts '>))
 
 (defun get-epsilon-rate (counts)
+  (get-rate counts '<))
+
+(defun get-rate (counts f)
   (binary-to-decimal
-   (reduce (lambda (x y) (concatenate 'string x (if (< (getf y :0) (getf y :1)) "0" "1")))
+   (reduce (lambda (x y) (concatenate 'string x (if (funcall f (getf y :0) (getf y :1)) "0" "1")))
 	   counts :initial-value "")))
 
 (defun binary-to-decimal (binary-number)
@@ -41,8 +42,6 @@
 
 ;; part 2
 
-(defvar *lines* (uiop:read-file-lines "test.txt"))
-
 (defun get-bit-count (binary-numbers index)
   (let ((bit-count (list :0 0 :1 0)))
     (loop for binary-number in binary-numbers
@@ -51,35 +50,28 @@
 	      (incf (getf bit-count :1))))
     bit-count))
 
-(defun get-oxygen-generator-rating (binary-numbers index)
-  (if (> index (length (car binary-numbers))) (setf index 0))
-  (if (= (list-length binary-numbers) 1)
-      (binary-to-decimal (car binary-numbers))
-      (let ((bit-count (get-bit-count binary-numbers index)))
-	(if (or (> (getf bit-count :1) (getf bit-count :0))
-		(= (getf bit-count :1) (getf bit-count :0)))
-	    (get-oxygen-generator-rating
-	     (remove-if (lambda (binary-number) (char= #\0 (char binary-number index))) binary-numbers) (1+ index))
-	    (get-oxygen-generator-rating
-	     (remove-if (lambda (binary-number) (char= #\1 (char binary-number index))) binary-numbers) (1+ index))))))
+(defun get-oxygen-generator-rating (binary-numbers)
+  (get-rating binary-numbers 0 #\1 '>))
 
-(defun get-c02-scrubber-rating (binary-numbers index)
+(defun get-c02-scrubber-rating (binary-numbers)
+  (get-rating binary-numbers 0 #\0 '<))
+
+(defun get-rating (binary-numbers index default-char f)
   (if (> index (length (car binary-numbers))) (setf index 0))
   (if (= (list-length binary-numbers) 1)
       (binary-to-decimal (car binary-numbers))
-      (let ((bit-count (get-bit-count binary-numbers index)))
-	(if (or (< (getf bit-count :0) (getf bit-count :1))
+      (let ((bit-count (get-bit-count binary-numbers index))
+	    (key (if (char= #\0 default-char) :0 :1)))
+	(if (or (funcall f (getf bit-count key) (getf bit-count (if (eq key :0) :1 :0)))
 		(= (getf bit-count :0) (getf bit-count :1)))
-	    (get-c02-scrubber-rating
-	     (remove-if (lambda (binary-number) (char= #\1 (char binary-number index))) binary-numbers) (1+ index))
-	    (get-c02-scrubber-rating
-	     (remove-if (lambda (binary-number) (char= #\0 (char binary-number index))) binary-numbers) (1+ index))))))
+	    (get-rating
+	     (remove-if (lambda (binary-number) (char= (if (char= #\0 default-char) #\1 #\0) (char binary-number index))) binary-numbers) (1+ index) default-char f)
+	    (get-rating
+	     (remove-if (lambda (binary-number) (char= default-char (char binary-number index))) binary-numbers) (1+ index) default-char f)))))
 
-(get-c02-scrubber-rating *lines* 0)
+(defvar *lines* (uiop:read-file-lines "test.txt"))
+(* (get-oxygen-generator-rating *lines*) (get-c02-scrubber-rating *lines*))
 
 (defvar *input* (uiop:read-file-lines "input.txt"))
-
-(* (get-oxygen-generator-rating *input* 0) (get-c02-scrubber-rating *input* 0))
-
-(get-oxygen-generator-rating 4)
+(* (get-oxygen-generator-rating *input*) (get-c02-scrubber-rating *input*))
 
