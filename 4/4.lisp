@@ -102,24 +102,24 @@
 	   (setf (nth i boards) (append (nth i boards) board-columns))))
     (let ((read-numbers '())
 	  (winning-number nil)
-	  (winning-board-index nil))
+	  (winning-board nil))
+      (print boards)
+      (print "beginning loops")
       (loop named find-winning-board for n in numbers do
 	   (setf read-numbers (append read-numbers (list n)))
-	   (loop for board in boards do
-		(loop for line in board do))
-	   (loop for i from 0 below (list-length boards) do
-		(loop for j from 0 below (list-length (nth i boards)) do
-		     (let ((current-line (nth j (nth i boards))))
-		       (if (subsetp current-line read-numbers)
-			   (progn
-			     (setf winning-number n)
-			     (setf winning-board-index i)
-			     (delete i boards)))))))
+	   (loop named loop-boards for i from 0 below (list-length boards) do
+		(let ((board (nth i boards)))
+		  (loop for line in board do
+		      (if (subsetp line read-numbers)
+			  (if (= (list-length boards) 1)
+			      (progn (setf winning-board board)
+				     (setf winning-number n)
+				     (return-from find-winning-board))
+			      (progn (setf boards (remove-nth i boards))
+				     (return-from loop-boards))))))))
       (print boards)
       (print winning-number)
-      (print winning-board-index)
       (let ((sum-unmarked-numbers 0)
-	    (winning-board (nth winning-board-index boards))
 	    (current-line nil))
 	(print winning-board)
 	(loop for i from 0 below 5 do
@@ -134,6 +134,8 @@
 (defparameter test '(1 2 3))
 
 (setf test '(1 2 3))
+
+(remove-if #'equal '(1 2) '((1 2) (1 3) (4) (1 2 3)))
 
 (delete 3 test)
 test
