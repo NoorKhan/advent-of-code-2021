@@ -35,6 +35,11 @@
 				   (list (map 'list (lambda (s) (parse-integer s))
 					      (cl-ppcre:split "\\s+" (string-left-trim '(#\Space) line))))))))))
     (setf boards (append boards (list current-board)))
+    (loop for i from 0 below (list-length boards) do
+	 (let ((board-columns '()))
+	   (loop for j from 0 below (list-length (nth i boards)) do
+		(setf board-columns (append board-columns (list (map 'list (lambda (l) (nth j l)) (nth i boards))))))
+	   (setf (nth i boards) (append (nth i boards) board-columns))))
     (let ((read-numbers '())
 	  (winning-number nil)
 	  (winning-board-index nil))
@@ -51,14 +56,18 @@
       (print read-numbers)
       (print winning-number)
       (print winning-board-index)
-      (let ((sum-unmarked-numbers 0))
-	(loop for line in (nth winning-board-index boards) do
-	     (print line)
-	     (loop for n in line do
+      (let ((sum-unmarked-numbers 0)
+	    (winning-board (nth winning-board-index boards))
+	    (current-line nil))
+	(print winning-board)
+	(loop for i from 0 below 5 do
+	     (setf current-line (nth i winning-board))
+	     (print current-line)
+	     (loop for n in current-line do
 		  (if (not (find n read-numbers)) (progn (print n) (incf sum-unmarked-numbers n)))))
 	(* winning-number sum-unmarked-numbers)))))
 
-(get-score "input.txt")
+(get-score "test.txt")
 (get-score "input.txt")
 
 (not nil)
