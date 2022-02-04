@@ -1,15 +1,6 @@
-(ql:quickload :fset)
 (ql:quickload :cl-ppcre)
-(ql:quickload :arrow-macros)
 
-(fset:equal? (fset:set 1 2 3 3) (fset:set 3 1 2))
-
-(with-open-file (stream "test.txt")
-  (loop for line = (read-line stream nil)
-     until (null line)
-     do
-       (print line)))
-
+;; part 1
 (defun get-score (input-file)
   (let ((boards '())
 	(numbers nil)
@@ -70,6 +61,7 @@
 (get-score "test.txt")
 (get-score "input.txt")
 
+;; part 2
 (defun get-score-2 (input-file)
   (let ((boards '())
 	(numbers nil)
@@ -103,39 +95,45 @@
     (let ((read-numbers '())
 	  (winning-number nil)
 	  (winning-board nil))
-      (print boards)
-      (print "beginning loops")
-      (loop named find-winning-board for n in numbers do
-	   (setf read-numbers (append read-numbers (list n)))
-	   (loop named loop-boards for i from 0 below (list-length boards) do
-		(let ((board (nth i boards)))
-		  (loop for line in board do
-		      (if (subsetp line read-numbers)
-			  (if (= (list-length boards) 1)
-			      (progn (setf winning-board board)
-				     (setf winning-number n)
-				     (return-from find-winning-board))
-			      (progn (setf boards (remove-nth i boards))
-				     (return-from loop-boards))))))))
-      (print boards)
-      (print winning-number)
+      (loop while (> (list-length boards) 1) do
+	   (setf boards (remove-nth (getf (find-winning-board boards numbers) :board-index) boards)))
+      (let ((find-winning-board-response (find-winning-board boards numbers)))
+	(setf
+	 winning-number (getf find-winning-board-response :winning-number)
+	 winning-board (car boards)
+	 read-numbers (getf find-winning-board-response :read-numbers)))
+      (format t "winning-number: ~a~%" winning-number)
       (let ((sum-unmarked-numbers 0)
 	    (current-line nil))
-	(print winning-board)
 	(loop for i from 0 below 5 do
 	     (setf current-line (nth i winning-board))
-	     (print current-line)
 	     (loop for n in current-line do
-		  (if (not (find n read-numbers)) (progn (print n) (incf sum-unmarked-numbers n)))))
+		  (if (not (find n read-numbers)) (incf sum-unmarked-numbers n))))
 	(* winning-number sum-unmarked-numbers)))))
 
+(defun find-winning-board (boards numbers)
+  (let ((read-numbers '()))
+    (loop named find-winning-board-index for n in numbers do
+	 (setf read-numbers (append read-numbers (list n)))
+	 (loop for board-index from 0 below (list-length boards) do
+	      (let ((board (nth board-index boards)))
+		(loop for line in board do
+		     (if (subsetp line read-numbers)
+			 (progn
+			   (format t "winning board: ~a~%index: ~a~%winning-number: ~a~%" board board-index n)
+			   (return-from find-winning-board-index
+			     (list :board-index board-index
+				   :winning-number n
+				   :read-numbers read-numbers))))))))))
+
+(defun remove-nth (n list)
+  (declare
+   (type (integer 0) n)
+   (type list list))
+  (if (or (zerop n) (null list))
+      (cdr list)
+      (cons (car list) (remove-nth (1- n) (cdr list)))))
+
 (get-score-2 "test.txt")
+(get-score-2 "input.txt")
 
-(defparameter test '(1 2 3))
-
-(setf test '(1 2 3))
-
-(remove-if #'equal '(1 2) '((1 2) (1 3) (4) (1 2 3)))
-
-(delete 3 test)
-test
